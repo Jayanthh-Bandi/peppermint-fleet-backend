@@ -9,6 +9,8 @@ public class FleetStateManager : IFleetStateReadStore, IFleetStateWriteStore
 {
     private readonly ConcurrentDictionary<string, Robot> _robots = new();
 
+    public event Action<RobotDto>? OnRobotUpdated;
+
     public void InitializeFleet(IEnumerable<Robot> initialRobots)
     {
         foreach (var robot in initialRobots)
@@ -22,6 +24,8 @@ public class FleetStateManager : IFleetStateReadStore, IFleetStateWriteStore
         if (_robots.TryGetValue(telemetry.RobotId, out var robot))
         {
             robot.UpdateTelemetry(telemetry);
+            var dto = MapToDto(robot);
+            OnRobotUpdated?.Invoke(dto);
         }
     }
 
