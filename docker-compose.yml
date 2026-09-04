@@ -1,0 +1,36 @@
+services:
+  mqtt-broker:
+    image: eclipse-mosquitto:2.0
+    container_name: peppermint-mqtt-broker
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    restart: always
+
+  backend-api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: peppermint-backend-api
+    ports:
+      - "5000:8080"
+    environment:
+      - MQTT_BROKER_HOST=mqtt-broker
+      - MQTT_BROKER_PORT=1883
+    depends_on:
+      - mqtt-broker
+    restart: always
+
+  robot-simulator:
+    build:
+      context: .
+      dockerfile: Dockerfile.simulator
+    container_name: peppermint-robot-simulator
+    environment:
+      - MQTT_BROKER_HOST=mqtt-broker
+      - MQTT_BROKER_PORT=1883
+    depends_on:
+      - mqtt-broker
+      - backend-api
+    restart: on-failure

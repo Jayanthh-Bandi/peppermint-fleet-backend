@@ -1,0 +1,10 @@
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS runtime
+WORKDIR /app
+
+# Copy pre-compiled host binaries directly into runtime image
+COPY src/Peppermint.FleetManagement.Api/bin/Release/net8.0/publish/ .
+
+EXPOSE 8080
+ENV ASPNETCORE_URLS=http://+:8080
+
+ENTRYPOINT ["dotnet", "Peppermint.FleetManagement.Api.dll"]

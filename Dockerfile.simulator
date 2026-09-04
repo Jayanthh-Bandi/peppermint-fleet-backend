@@ -1,0 +1,7 @@
+FROM mcr.microsoft.com/dotnet/runtime:8.0 AS runtime
+WORKDIR /app
+
+# Copy pre-compiled host binaries directly into runtime image
+COPY src/Peppermint.FleetManagement.Simulator/bin/Release/net8.0/publish/ .
+
+ENTRYPOINT ["dotnet", "Peppermint.FleetManagement.Simulator.dll"]

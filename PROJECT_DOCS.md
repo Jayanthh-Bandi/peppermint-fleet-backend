@@ -150,3 +150,32 @@ peppermint-fleet-backend/
 └── tests/
     └── Peppermint.FleetManagement.Tests/
         ├── FleetStateManagerTests.cs
+
+
+
++-------------------------------------------------------------------------------+
+|                            Docker Bridge Network (fleet-net)                  |
+|                                                                               |
+|  +--------------------+   MQTT Port 1883    +------------------------------+  |
+|  |   mqtt-broker      | <------------------ |       robot-simulator        |  |
+|  | (eclipse-mosquitto)|                     | (Spawns 8 robot processes)   |  |
+|  +--------------------+                     +------------------------------+  |
+|            ^                                                                  |
+|            | Subscribes to telemetry on robots/+/telemetry                    |
+|            v                                                                  |
+|  +-------------------------------------------------------------------------+  |
+|  |                                backend-api                               |  |
+|  | - MqttTelemetryIngestionWorker (Ingests MQTT updates)                 |  |
+|  | - FleetStateManager (In-Memory Concurrent Store)                        |  |
+|  | - REST Controller (Port 5000 -> HTTP polling GET /api/robots)          |  |
+|  | - SignalR Hub (Port 5000 -> WebSocket streaming /hubs/fleet)            |  |
+|  +-------------------------------------------------------------------------+  |
+|                                    |                                          |
++------------------------------------|------------------------------------------+
+                                     v Exposed to Host
+                            http://localhost:500
+
+
+mqtt-broker (Eclipse Mosquitto): A standard, ultra-lightweight MQTT message broker listening internally on port 1883.  
+backend-api: Builds our ASP.NET Core API application. It connects to mqtt-broker, runs the ingestion background worker, maintains the in-memory state, and exposes port 5000 to the host machine for REST polling and SignalR WebSockets.  
+robot-simulator: Builds our .NET Console simulator app. It waits for mqtt-broker to be healthy, then launches 8 distinct child processes (one for each robot r1–r8) to publish events.jsonl data over MQTT.  
